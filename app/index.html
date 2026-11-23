@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0A0E17">
+  <meta name="color-scheme" content="dark">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Swipe Room: rate upcoming Your Call Shorts.">
+  <title>Swipe Room · Your Call</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23C8FF2E'/%3E%3Cpath d='M9.5 9.5l6.5 8 6.5-8M16 17.5V24' fill='none' stroke='%230A0E17' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Non-blocking font: system font paints first, Inter swaps in when ready. -->
+  <link id="font-css" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" media="print">
+  <link rel="stylesheet" href="css/app.css">
+  <script type="module" src="dist/app.js"></script>
+</head>
+<body data-view="loading">
+<div id="app">
+
+  <!-- Loading -->
+  <section id="loading" class="view view-center" aria-label="Loading">
+    <div class="splash">
+      <svg class="logo-mark logo-lg" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#C8FF2E"/><path d="M9.5 9.5l6.5 8 6.5-8M16 17.5V24" fill="none" stroke="#0A0E17" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="spinner" aria-hidden="true"></span>
+    </div>
+  </section>
+
+  <!-- Welcome -->
+  <section id="welcome" class="view" hidden aria-labelledby="welcome-title">
+    <div class="welcome-glow" aria-hidden="true"></div>
+    <div class="welcome-inner">
+      <div class="brand">
+        <svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#C8FF2E"/><path d="M9.5 9.5l6.5 8 6.5-8M16 17.5V24" fill="none" stroke="#0A0E17" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="wordmark">YOUR CALL</span>
+        <span class="brand-tag">Swipe Room</span>
+      </div>
+
+      <div class="deck" aria-hidden="true">
+        <div class="deck-card deck-l"><span class="mini-stamp mini-bad">BAD</span></div>
+        <div class="deck-card deck-r"><span class="mini-stamp mini-good">GOOD</span></div>
+        <div class="deck-card deck-c">
+          <i class="deck-bar"></i>
+          <span class="deck-play"><svg viewBox="0 0 24 24"><path d="M8 5.2v13.6c0 .8.9 1.3 1.6.8l10.2-6.8a1 1 0 000-1.6L9.6 4.4C8.9 3.9 8 4.4 8 5.2z" fill="currentColor"/></svg></span>
+          <i class="deck-line w80"></i><i class="deck-line w50"></i>
+        </div>
+      </div>
+
+      <h1 id="welcome-title">Your swipe decides<br>what we post <em>next.</em></h1>
+      <p class="lede">Watch short finance videos before anyone else does. Swipe right if you’d keep watching, left if you’d scroll. Then tell us why.</p>
+
+      <ol class="steps">
+        <li><b>1</b><span>Watch</span></li>
+        <li><b>2</b><span>Swipe</span></li>
+        <li><b>3</b><span>Say why</span></li>
+      </ol>
+
+      <form id="welcome-form" class="form" novalidate>
+        <label class="field">
+          <span class="field-label">Nickname</span>
+          <input id="nick" name="nickname" type="text" inputmode="text" autocomplete="nickname" autocapitalize="words" spellcheck="false" minlength="2" maxlength="24" placeholder="What should we call you?" required>
+        </label>
+        <label class="field">
+          <span class="field-label">Invite code</span>
+          <input id="invite" name="invite" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="64" placeholder="From your invite link" required>
+        </label>
+        <p id="welcome-error" class="form-error" role="alert" hidden></p>
+        <button id="welcome-go" class="btn btn-primary btn-block" type="submit"><span>Start rating</span></button>
+        <p class="demo-note" data-demo-note hidden>Demo: any invite code works and ratings stay on this device.</p>
+        <p class="fine">No account or email needed. We keep your nickname and ratings only. Videos are AI-generated drafts.</p>
+      </form>
+    </div>
+  </section>
+
+  <!-- Feed -->
+  <section id="feed" class="view" hidden aria-label="Rate videos">
+    <header class="topbar">
+      <div class="tb-left">
+        <svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#C8FF2E"/><path d="M9.5 9.5l6.5 8 6.5-8M16 17.5V24" fill="none" stroke="#0A0E17" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div id="progress" class="progress" role="progressbar" aria-label="Videos rated" aria-valuemin="0" aria-valuenow="0" aria-valuemax="0">
+          <span id="progress-text" data-testid="progress">0 of 0 rated</span>
+          <span class="progress-track"><i id="progress-fill"></i></span>
+        </div>
+      </div>
+      <div class="tb-right">
+        <span id="sync" class="sync" data-state="ok" role="status" aria-live="polite" data-testid="sync">
+          <span class="sync-dot" aria-hidden="true"></span><span id="sync-text">Saved</span>
+        </span>
+        <span id="me" class="me" data-badge="none" data-testid="me">
+          <span id="me-initial" class="me-avatar" aria-hidden="true">?</span>
+          <span id="me-name" class="me-name"></span>
+        </span>
+        <button id="menu-btn" class="icon-btn" type="button" aria-label="Menu" aria-haspopup="true" aria-expanded="false" aria-controls="menu">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.8" fill="currentColor"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/><circle cx="19" cy="12" r="1.8" fill="currentColor"/></svg>
+        </button>
+        <div id="menu" class="menu" role="menu" hidden>
+          <div class="menu-head"><span id="menu-nick"></span><span id="menu-badge" class="badge" hidden></span></div>
+          <button id="menu-idea" class="menu-item" role="menuitem" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 3a6 6 0 00-3.6 10.8c.7.5 1.1 1.3 1.1 2.2h5c0-.9.4-1.7 1.1-2.2A6 6 0 0012 3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+            Share a general idea
+          </button>
+          <button id="menu-help" class="menu-item" role="menuitem" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9.6 9.3a2.5 2.5 0 114 2c-.9.6-1.6 1.1-1.6 2.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="17" r="1.2" fill="currentColor"/></svg>
+            How rating works
+          </button>
+          <p class="menu-fine">Videos are AI-generated drafts.</p>
+        </div>
+      </div>
+    </header>
+
+    <main class="stage">
+      <div id="stack" class="stack" aria-live="off"></div>
+      <div id="coach" class="coach" aria-hidden="true">
+        <span class="coach-l"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Scroll past</span>
+        <span class="coach-r">Keep watching<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </div>
+      <div id="done" class="done" hidden>
+        <div class="done-medal">
+          <div id="burst" class="burst" aria-hidden="true"></div>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h2 data-testid="done-title">All <span id="done-count">0</span> rated. Legend.</h2>
+        <p>You’ve seen everything in the room. New videos land here as we make them, so check back soon.</p>
+        <button id="done-idea" type="button" class="btn btn-ghost">Share a general idea</button>
+      </div>
+      <aside class="kbd-hints" aria-label="Keyboard shortcuts">
+        <h3>Shortcuts</h3>
+        <ul>
+          <li><kbd>→</kbd><span>Good</span></li>
+          <li><kbd>←</kbd><span>Bad</span></li>
+          <li><kbd>Space</kbd><span>Play / pause</span></li>
+          <li><kbd>↓</kbd><span>I’d scroll away here</span></li>
+          <li><kbd>M</kbd><span>Sound on / off</span></li>
+          <li><kbd>S</kbd><span>Skip for now</span></li>
+          <li><kbd>U</kbd><span>Undo last</span></li>
+          <li><kbd>1</kbd>–<kbd>5</kbd><span>Pick reasons</span></li>
+        </ul>
+        <p class="kbd-fine">Videos are AI-generated drafts.</p>
+      </aside>
+    </main>
+
+    <nav class="controls" aria-label="Rate this video">
+      <button id="btn-undo" class="ctl ctl-sm" type="button" aria-label="Undo last rating" data-testid="undo" disabled>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 9h10.5a5.5 5.5 0 010 11H11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        <span class="ctl-label">Undo</span>
+      </button>
+      <button id="btn-bad" class="ctl ctl-lg ctl-bad" type="button" aria-label="Bad: I’d scroll past" data-testid="bad">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/></svg>
+      </button>
+      <button id="btn-good" class="ctl ctl-lg ctl-good" type="button" aria-label="Good: I’d keep watching" data-testid="good">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.3s-7.6-4.6-9.2-9.4C1.7 7.5 3.9 4.2 7.3 4.2c2 0 3.6 1.1 4.7 2.7 1.1-1.6 2.7-2.7 4.7-2.7 3.4 0 5.6 3.3 4.5 6.7-1.6 4.8-9.2 9.4-9.2 9.4z" fill="currentColor"/></svg>
+      </button>
+      <button id="btn-skip" class="ctl ctl-sm" type="button" aria-label="Skip for now" data-testid="skip">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5.5v13l9-6.5-9-6.5z" fill="currentColor"/><path d="M18 5v14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+        <span class="ctl-label">Skip</span>
+      </button>
+    </nav>
+    <p class="demo-tag" data-demo-note hidden>Demo · ratings stay on this device</p>
+  </section>
+
+  <!-- Fatal -->
+  <section id="fatal" class="view view-center" hidden>
+    <div class="fatal">
+      <p id="fatal-msg">Something went wrong.</p>
+      <button id="fatal-retry" class="btn btn-primary" type="button">Try again</button>
+    </div>
+  </section>
+</div>
+
+<div id="scrim" class="scrim" hidden></div>
+<section id="sheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden></section>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<noscript><p class="noscript">Swipe Room needs JavaScript to run.</p></noscript>
+</body>
+</html>

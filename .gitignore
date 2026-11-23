@@ -1,0 +1,12 @@
+node_modules/
+.tools/
+**/.tools/
+tests/e2e/.emu/
+*.log
+__pycache__/
+.pytest_cache/
+*.map
+tests/shots/
+firebase-debug.log
+firestore-debug.log
+demo/

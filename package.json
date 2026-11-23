@@ -1,0 +1,22 @@
+{
+  "name": "swipe-room",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Swipe Room: rater app for the Your Call channel",
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch",
+    "serve": "node tests/e2e/serve.mjs",
+    "test:e2e": "node tests/e2e/run.mjs",
+    "build:demo": "node build.mjs --demo",
+    "test:demo": "node build.mjs --demo && node --test --test-reporter=spec tests/e2e/demo.test.mjs"
+  },
+  "dependencies": {
+    "firebase": "^11.10.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "firebase-tools": "^15.37.0"
+  },
+  "type": "module"
+}

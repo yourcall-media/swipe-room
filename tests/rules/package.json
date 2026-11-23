@@ -1,0 +1,20 @@
+{
+  "name": "swipe-room-rules-admin",
+  "private": true,
+  "type": "module",
+  "description": "Firestore rules tests, admin build, seed and admin e2e for Swipe Room",
+  "scripts": {
+    "test": "firebase emulators:exec --only firestore --project demo-swipe-room --config ../../firebase.test.json 'node --test --test-concurrency=1 rules.test.mjs'",
+    "build:admin": "node ../../scripts/build_admin.mjs",
+    "seed": "node ../../scripts/seed_emulator.mjs",
+    "test:admin": "node ../../scripts/build_admin.mjs && firebase emulators:exec --only auth,firestore --project demo-swipe-room --config ../../firebase.test.json 'node --test --test-concurrency=1 ../admin/admin.e2e.mjs'",
+    "emulators": "firebase emulators:start --only auth,firestore --project demo-swipe-room --config ../../firebase.json"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^4.0.1",
+    "esbuild": "^0.24.2",
+    "firebase": "^11.10.0",
+    "firebase-admin": "^13.10.0",
+    "firebase-tools": "^14.27.0"
+  }
+}

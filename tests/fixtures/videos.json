@@ -1,0 +1,11 @@
+{
+  "version": "fixture",
+  "cats": [["money", "Money basics"], ["invest", "Investing"], ["story", "Story"]],
+  "videos": [
+    {"id": "t1", "cat": "money", "title": "Test clip 1", "hook": "Why your savings shrink", "dur": 7, "v": "v/t1.mp4", "p": "p/t1.jpg", "w": 540, "h": 960},
+    {"id": "t2", "cat": "story", "title": "Test clip 2", "hook": "Dynasty part two", "dur": 8, "series": "Dynasty", "ep": 2, "v": "v/t2.mp4", "p": "p/t2.jpg", "w": 540, "h": 960},
+    {"id": "t3", "cat": "story", "title": "Test clip 3", "hook": "Dynasty part one", "dur": 9, "series": "Dynasty", "ep": 1, "v": "v/t3.mp4", "p": "p/t3.jpg", "w": 540, "h": 960},
+    {"id": "t4", "cat": "invest", "title": "Test clip 4", "hook": "Index funds in 60s", "dur": 10, "v": "v/t4.mp4", "p": "p/t4.jpg", "w": 540, "h": 960},
+    {"id": "t5", "cat": "invest", "title": "Test clip 5", "hook": "Compound interest", "dur": 11, "v": "v/t5.mp4", "p": "p/t5.jpg", "w": 540, "h": 960}
+  ]
+}

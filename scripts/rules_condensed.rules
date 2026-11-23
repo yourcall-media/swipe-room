@@ -1,0 +1,123 @@
+rules_version = '2';
+
+// Swipe Room — Firestore security rules (spec v1, Nov 23 2026).
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isSelf(uid) { return signedIn() && request.auth.uid == uid; }
+    function isAdmin() {
+      return signedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    function isRater() {
+      return signedIn() && exists(/databases/$(database)/documents/raters/$(request.auth.uid));
+    }
+    function data() { return request.resource.data; }
+    function optional(d, key) { return !(key in d); }
+    function isStr(v, maxLen) { return v is string && v.size() <= maxLen; }
+    function isNum(v, lo, hi) { return v is number && v >= lo && v <= hi; }
+    function isInt(v, lo, hi) { return v is int && v >= lo && v <= hi; }
+    function validNickname(n) {
+      return n is string && n.size() >= 2 && n.size() <= 24 && n.trim().size() >= 2
+        && !n.matches('.*[\\x00-\\x1F\\x7F<>].*');
+    }
+    function validCode(code) { return code is string && code.matches('^[A-Za-z0-9_-]{4,40}$'); }
+    function validVideoId(id) { return id is string && id.matches('^[a-z0-9][a-z0-9-]{0,99}$'); }
+    function validVia(v) { return v == null || v in ['voice', 'text', 'mixed']; }
+
+    match /invites/{code} {
+      allow get: if signedIn();
+      allow list: if isAdmin();
+      allow create: if isAdmin() && validCode(code) && validInvite();
+      allow update: if isAdmin() && validInvite() && data().createdAt == resource.data.createdAt;
+      allow delete: if isAdmin();
+      function validInvite() {
+        return data().keys().hasOnly(['active', 'label', 'createdAt'])
+          && data().keys().hasAll(['active', 'label', 'createdAt'])
+          && data().active is bool && isStr(data().label, 80) && data().createdAt is timestamp;
+      }
+    }
+
+    match /raters/{uid} {
+      allow get: if isSelf(uid) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if isSelf(uid)
+        && data().keys().hasOnly(['nickname', 'inviteCode', 'createdAt', 'lastSeenAt'])
+        && data().keys().hasAll(['nickname', 'inviteCode', 'createdAt', 'lastSeenAt'])
+        && validNickname(data().nickname) && validCode(data().inviteCode)
+        && exists(/databases/$(database)/documents/invites/$(data().inviteCode))
+        && get(/databases/$(database)/documents/invites/$(data().inviteCode)).data.active == true
+        && data().createdAt == request.time && data().lastSeenAt == request.time;
+      allow update: if isSelf(uid)
+        && data().diff(resource.data).affectedKeys().hasOnly(['nickname', 'lastSeenAt'])
+        && validNickname(data().nickname) && data().lastSeenAt == request.time;
+      allow update: if isAdmin()
+        && data().diff(resource.data).affectedKeys().hasOnly(['trust', 'badge', 'ratedCount', 'nickname'])
+        && (optional(data(), 'trust') || isInt(data().trust, 0, 100))
+        && (optional(data(), 'badge') || data().badge in ['bronze', 'silver', 'gold'])
+        && (optional(data(), 'ratedCount') || isInt(data().ratedCount, 0, 1000000))
+        && validNickname(data().nickname);
+      allow delete: if isAdmin();
+    }
+
+    match /ratings/{ratingId} {
+      allow get: if (signedIn() && ratingId.split('__')[0] == request.auth.uid) || isAdmin();
+      allow list: if (signedIn() && resource.data.uid == request.auth.uid) || isAdmin();
+      allow create: if validRating() && data().createdAt == request.time;
+      allow update: if validRating() && resource.data.uid == request.auth.uid
+        && (data().createdAt == resource.data.createdAt || data().createdAt == request.time);
+      allow delete: if (signedIn() && resource.data.uid == request.auth.uid) || isAdmin();
+      function validRating() {
+        let d = data();
+        let goodKeys = ['hook', 'story', 'learned', 'visuals', 'share', 'other'];
+        let badKeys = ['slow', 'confusing', 'cheap', 'audio', 'long', 'other'];
+        return isRater()
+          && d.keys().hasOnly(['uid', 'videoId', 'verdict', 'reasons', 'other', 'watchedSec',
+                               'durationSec', 'watchedPct', 'dropOffSec', 'swipedEarly', 'idea',
+                               'ideaVia', 'createdAt', 'updatedAt', 'client'])
+          && d.keys().hasAll(['uid', 'videoId', 'verdict', 'reasons', 'createdAt', 'updatedAt'])
+          && d.uid == request.auth.uid && validVideoId(d.videoId)
+          && ratingId == d.uid + '__' + d.videoId
+          && d.verdict in ['good', 'bad'] && d.reasons is list && d.reasons.size() <= 6
+          && d.reasons.toSet().size() == d.reasons.size()
+          && d.reasons.hasOnly(d.verdict == 'good' ? goodKeys : badKeys)
+          && (optional(d, 'other') || isStr(d.other, 500))
+          && (optional(d, 'watchedSec') || isNum(d.watchedSec, 0, 7200))
+          && (optional(d, 'durationSec') || isNum(d.durationSec, 0, 7200))
+          && (optional(d, 'watchedPct') || isNum(d.watchedPct, 0, 1))
+          && (optional(d, 'dropOffSec') || d.dropOffSec == null || isNum(d.dropOffSec, 0, 7200))
+          && (optional(d, 'swipedEarly') || d.swipedEarly is bool)
+          && (optional(d, 'idea') || isStr(d.idea, 2000))
+          && (optional(d, 'ideaVia') || validVia(d.ideaVia))
+          && d.createdAt is timestamp && d.updatedAt == request.time
+          && (optional(d, 'client') || validClient(d.client));
+      }
+      function validClient(c) {
+        return c is map && c.keys().hasOnly(['ua', 'vw', 'vh'])
+          && (optional(c, 'ua') || isStr(c.ua, 300))
+          && (optional(c, 'vw') || isNum(c.vw, 0, 20000))
+          && (optional(c, 'vh') || isNum(c.vh, 0, 20000));
+      }
+    }
+
+    match /feedback/{id} {
+      allow get, list: if (signedIn() && resource.data.uid == request.auth.uid) || isAdmin();
+      allow create: if isRater()
+        && data().keys().hasOnly(['uid', 'text', 'via', 'createdAt'])
+        && data().keys().hasAll(['uid', 'text', 'createdAt'])
+        && data().uid == request.auth.uid && data().text is string
+        && data().text.trim().size() >= 1 && data().text.size() <= 2000
+        && (optional(data(), 'via') || validVia(data().via))
+        && data().createdAt == request.time;
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
+    match /admins/{uid} {
+      allow get: if isSelf(uid);
+      allow list, write: if false;
+    }
+    match /batches/{batchId} { allow read, write: if isAdmin(); }
+    match /approved/{itemId} { allow read, write: if isAdmin(); }
+  }
+}
